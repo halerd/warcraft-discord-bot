@@ -9,6 +9,7 @@ import org.apache.http.client.ResponseHandler;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.BasicResponseHandler;
 import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.log4j.Logger;
 import org.json.JSONObject;
 
 import net.dv8tion.jda.core.events.message.MessageReceivedEvent;
@@ -16,6 +17,7 @@ import net.dv8tion.jda.core.hooks.ListenerAdapter;
 
 public class BotListener extends ListenerAdapter {
 
+  private static final Logger LOGGER = Logger.getLogger(BotListener.class);
   private static final String LOCALE = "en_GB";
   private static final String[] SLOTS =
       new String[] {"head", "neck", "shoulder", "back", "chest", "wrist", "hands", "waist", "legs",
@@ -43,6 +45,7 @@ public class BotListener extends ListenerAdapter {
   public void onMessageReceived(MessageReceivedEvent event) {
     String discordUserAsMention = event.getAuthor().getAsMention();
     if (event.getMessage().getRawContent().startsWith("!gear")) {
+      long startTime = System.currentTimeMillis();
       try {
         String[] split = event.getMessage().getRawContent().split(" ");
         if (split.length != 4) {
@@ -53,6 +56,10 @@ public class BotListener extends ListenerAdapter {
         }
       } catch (IOException e) {
         e.printStackTrace();
+      }
+      long endTime = System.currentTimeMillis();
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(String.format("!gear took %dms.", (endTime - startTime)));
       }
     }
   }
@@ -70,10 +77,15 @@ public class BotListener extends ListenerAdapter {
             discordUserAsMention, continent, name, realm))
         .queue();
     try {
+      long startTime = System.currentTimeMillis();
       HttpGet request = new HttpGet(url);
       ResponseHandler<String> responseHandler = new BasicResponseHandler();
       String responseBody = httpClient.execute(request, responseHandler);
       JSONObject response = new JSONObject(responseBody);
+      long endTime = System.currentTimeMillis();
+      if (LOGGER.isDebugEnabled()) {
+        LOGGER.debug(String.format("Call to Blizzard API took %dms.", (endTime - startTime)));
+      }
       String message = buildMessage(response, continent, realm, name);
       event.getChannel().sendMessage(String.format("%s\n%s", discordUserAsMention, message))
           .queue();
@@ -94,6 +106,7 @@ public class BotListener extends ListenerAdapter {
   }
 
   protected String buildMessage(JSONObject response, String continent, String realm, String name) {
+    long startTime = System.currentTimeMillis();
     JSONObject items = (JSONObject) response.get(JSON_KEY_ITEMS);
     StringBuilder builder = new StringBuilder();
     builder.append(LINE_SEPARATOR);
@@ -134,6 +147,10 @@ public class BotListener extends ListenerAdapter {
     builder.append(LINE_SEPARATOR);
     builder.append("\n");
     builder.append(getThumbnailUrl(continent, response.get(JSON_KEY_THUMBNAIL).toString()));
+    long endTime = System.currentTimeMillis();
+    if (LOGGER.isDebugEnabled()) {
+      LOGGER.debug(String.format("buildMessage took %dms.", (endTime - startTime)));
+    }
     return builder.toString();
   }
 
