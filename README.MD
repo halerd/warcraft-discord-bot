@@ -2,9 +2,9 @@
 
 ## Synopsis
 
-A Java bot for Discord using the JDA library.
+A Java bot for [Discord] (https://discordapp.com/), build using the [JDA] (https://github.com/DV8FromTheWorld/JDA) library.
 
-Retrieves information about a given World of Warcraft character
+Retrieves information about a given World of Warcraft character.
 
 ## Example
 
